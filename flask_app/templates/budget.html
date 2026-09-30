@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}50/30/20 Budget Planning & Envelopes — Personal Finance Advisor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">50/30/20 Budget Envelopes</h1>
+      <p class="text-xs text-slate-500 mt-1">Configure category limits and align your monthly cash flow with the gold standard 50/30/20 rule</p>
+    </div>
+    <div class="flex items-center space-x-2 text-xs">
+      <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-800 font-semibold border border-blue-200">50% Needs</span>
+      <span class="px-2.5 py-1 rounded-md bg-purple-50 text-purple-800 font-semibold border border-purple-200">30% Wants</span>
+      <span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">20% Savings</span>
+    </div>
+  </div>
+
+  <!-- Budget Benchmark Comparison Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Needs -->
+    <div class="bg-white p-5 rounded-2xl border border-blue-100 shadow-xs">
+      <div class="flex justify-between items-center text-xs text-blue-800 font-semibold mb-2">
+        <span>Needs (Essentials)</span>
+        <span>Target: 50%</span>
+      </div>
+      <p class="text-xl font-bold text-slate-800">{{ snapshot.currency }}{{ "%.2f"|format(snapshot.total_income * 0.5) }}</p>
+      <p class="text-[11px] text-slate-500 mt-1">Rent, mortgage, basic groceries, utilities, transit & healthcare.</p>
+    </div>
+
+    <!-- Wants -->
+    <div class="bg-white p-5 rounded-2xl border border-purple-100 shadow-xs">
+      <div class="flex justify-between items-center text-xs text-purple-800 font-semibold mb-2">
+        <span>Wants (Lifestyle)</span>
+        <span>Target: 30%</span>
+      </div>
+      <p class="text-xl font-bold text-slate-800">{{ snapshot.currency }}{{ "%.2f"|format(snapshot.total_income * 0.3) }}</p>
+      <p class="text-[11px] text-slate-500 mt-1">Dining out, entertainment, shopping, hobbies & streaming services.</p>
+    </div>
+
+    <!-- Savings -->
+    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
+      <div class="flex justify-between items-center text-xs text-emerald-800 font-semibold mb-2">
+        <span>Savings & Debt Buffer</span>
+        <span>Target: 20%</span>
+      </div>
+      <p class="text-xl font-bold text-slate-800">{{ snapshot.currency }}{{ "%.2f"|format(snapshot.total_income * 0.2) }}</p>
+      <p class="text-[11px] text-slate-500 mt-1">Emergency fund, investments, retirement & high-interest debt payoffs.</p>
+    </div>
+  </div>
+
+  <!-- Category Envelopes Form -->
+  <form method="POST" action="{{ url_for('budget_view') }}" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+      <div>
+        <h2 class="text-base font-bold text-slate-800">Monthly Envelope Ceilings</h2>
+        <p class="text-xs text-slate-500">Edit the maximum budget allowed for each category this month</p>
+      </div>
+      <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+        <i class="fa-solid fa-floppy-disk mr-1"></i> Save Changes
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% for cat in snapshot.categories %}
+        {% set spent = snapshot.category_totals.get(cat.name, 0.0) %}
+        {% set percent = (spent / cat.budget_limit * 100) if cat.budget_limit > 0 else 0 %}
+        
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-bold text-slate-800 block">{{ cat.name }}</span>
+              <span class="text-[10px] uppercase font-semibold tracking-wider text-slate-400">{{ cat.envelope_type }}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold text-slate-700">Spent: {{ snapshot.currency }}{{ "%.2f"|format(spent) }}</span>
+              <span class="text-[10px] block {% if percent > 100 %}text-rose-600 font-bold{% elif percent > 80 %}text-amber-600{% else %}text-emerald-600{% endif %}">
+                {{ "%.0f"|format(percent) }}% utilized
+              </span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div class="h-2 rounded-full {% if percent > 100 %}bg-rose-500{% elif percent > 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}" style="width: {{ [percent, 100]|min }}%"></div>
+          </div>
+
+          <!-- Edit Limit Input -->
+          <div class="pt-2 flex items-center justify-between text-xs">
+            <label class="text-slate-500 font-medium">Monthly Limit ({{ snapshot.currency }}):</label>
+            <input type="number" step="10" name="budget_limit_{{ cat.id }}" value="{{ cat.budget_limit }}" class="w-28 px-2 py-1 bg-white border border-slate-300 rounded text-right font-bold text-slate-800 outline-none focus:ring-1 focus:ring-emerald-500">
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-right pt-4 border-t border-slate-100">
+      <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+        <i class="fa-solid fa-floppy-disk mr-1"></i> Save All Envelope Ceilings
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Personal Finance Advisor Bot — AI-Powered Financial Planning{% endblock %}
+
+{% block content %}
+<div class="py-12 lg:py-16 text-center max-w-4xl mx-auto">
+  <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-6">
+    <i class="fa-solid fa-sparkles text-emerald-600"></i>
+    <span>Autonomous 50/30/20 Budgeting & Spending Intelligence</span>
+  </div>
+
+  <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
+    Master Your Money with an <br>
+    <span class="bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent">AI Financial Advisor Bot</span>
+  </h1>
+
+  <p class="mt-6 text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+    Track income, categorize expenses, detect spending leaks, stress-test big purchases, and receive personalized financial advice grounded in your real-time numbers.
+  </p>
+
+  <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+    <a href="{{ url_for('register') }}" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
+      <span>Get Started Free</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </a>
+    <a href="{{ url_for('login') }}" class="px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl border border-slate-200 shadow-xs transition-colors">
+      <span>Existing User Sign In</span>
+    </a>
+  </div>
+
+  <!-- Feature Grid -->
+  <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+    <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
+      <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg mb-4">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-base mb-1">Live Financial Dashboard</h3>
+      <p class="text-sm text-slate-600">Real-time income, expenses, cash flow rate, and financial health score (0–100) at a glance.</p>
+    </div>
+
+    <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
+      <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg mb-4">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-base mb-1">AI Advisor & Audit Bot</h3>
+      <p class="text-sm text-slate-600">Chat with an advisor aware of your balances to audit overspending and auto-balance envelopes.</p>
+    </div>
+
+    <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
+      <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg mb-4">
+        <i class="fa-solid fa-calculator"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-base mb-1">Purchase Simulator</h3>
+      <p class="text-sm text-slate-600">Run "Can I Afford This?" simulations before big purchases to protect your emergency buffer.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

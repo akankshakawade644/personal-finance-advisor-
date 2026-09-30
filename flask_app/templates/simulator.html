@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Can I Afford This? — Purchase Simulator{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+    <div class="flex items-center space-x-3 mb-2">
+      <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg">
+        <i class="fa-solid fa-calculator"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-800">"Can I Afford This?" Purchase Simulator</h1>
+        <p class="text-xs text-slate-500">Stress-test a discretionary purchase before you buy to protect your cash flow buffer</p>
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
+      <span class="text-slate-600">Current Monthly Cash Buffer:</span>
+      <span class="font-bold text-sm {% if snapshot.net_cash_flow >= 0 %}text-emerald-700{% else %}text-rose-600{% endif %}">
+        {{ snapshot.currency }}{{ "%.2f"|format(snapshot.net_cash_flow) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Simulation Input Form -->
+  <form method="POST" action="{{ url_for('purchase_simulator') }}" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Item / Expense Name</label>
+        <input type="text" name="item_name" required placeholder="e.g. Sony WH-1000XM5 Headphones" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Expected Cost ({{ snapshot.currency }})</label>
+        <input type="number" step="0.01" name="cost" required placeholder="e.g. 349.99" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 font-bold text-slate-800">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+        <select name="category" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white outline-none">
+          <option value="Shopping & Lifestyle">Shopping & Lifestyle</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Travel & Vacation">Travel & Vacation</option>
+          <option value="Electronics & Tech">Electronics & Tech</option>
+          <option value="Food & Dining">Food & Dining</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Urgency / Necessity</label>
+        <select name="urgency" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white outline-none">
+          <option value="Nice to Have">Nice to Have (Non-essential)</option>
+          <option value="Impulse">Impulse / Discretionary</option>
+          <option value="Essential Need">Essential Need (Urgent replacement)</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+      <i class="fa-solid fa-play mr-1.5"></i> Run Affordability Stress-Test
+    </button>
+  </form>
+
+  <!-- Simulation Result (if submitted) -->
+  {% if result %}
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Simulation Verdict</span>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider {% if result.verdict == 'SAFE' %}bg-emerald-100 text-emerald-800{% elif result.verdict == 'CAUTION' %}bg-amber-100 text-amber-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+          {{ result.verdict }}
+        </span>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-bold text-slate-800 mb-1">{{ result.verdict_title }}</h3>
+        <p class="text-xs text-slate-600 leading-relaxed">{{ result.rationale }}</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+        <div class="p-3 bg-slate-50 rounded-xl text-xs">
+          <span class="font-bold text-slate-700 block mb-1">Impact on Cash Flow:</span>
+          <p class="text-slate-600">{{ result.impact_on_cash_flow }}</p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl text-xs">
+          <span class="font-bold text-slate-700 block mb-1">Recommended Action:</span>
+          <p class="text-slate-600">{{ result.recommended_action }}</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Statement — {{ month_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Action Bar (hidden when printing) -->
+  <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-xs print:hidden">
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid fa-file-invoice text-emerald-600 text-lg"></i>
+      <span class="text-sm font-bold text-slate-800">Monthly Financial Statement & Audit</span>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center space-x-1.5 cursor-pointer">
+        <i class="fa-solid fa-print"></i>
+        <span>Print Statement</span>
+      </button>
+      <a href="{{ url_for('export_csv') }}" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+        <i class="fa-solid fa-download"></i>
+        <span>Export CSV</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Printable Statement Container -->
+  <div class="bg-white p-8 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-8 print:border-none print:shadow-none print:p-0">
+    
+    <!-- Statement Header -->
+    <div class="flex justify-between items-start border-b border-slate-200 pb-6">
+      <div>
+        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Personal Financial Statement</h1>
+        <p class="text-xs text-slate-500 mt-1">Period: <strong class="text-slate-700">{{ month_name }}</strong></p>
+        <p class="text-xs text-slate-500">Account Holder: <strong class="text-slate-700">{{ current_user.username }}</strong> ({{ snapshot.persona }})</p>
+      </div>
+      <div class="text-right">
+        <span class="text-xs uppercase font-bold text-slate-400 block tracking-wider">Health Rating</span>
+        <span class="text-2xl font-black text-emerald-700">{{ analysis.health_score }}/100</span>
+        <span class="text-[10px] uppercase font-bold block text-slate-500">{{ analysis.status }}</span>
+      </div>
+    </div>
+
+    <!-- Executive Summary Grid -->
+    <div class="grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl text-center">
+      <div>
+        <span class="text-[10px] uppercase text-slate-400 font-bold block">Gross Inflow</span>
+        <p class="text-lg font-bold text-slate-800">{{ snapshot.currency }}{{ "%.2f"|format(snapshot.total_income) }}</p>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase text-slate-400 font-bold block">Total Outflow</span>
+        <p class="text-lg font-bold text-rose-600">-{{ snapshot.currency }}{{ "%.2f"|format(snapshot.total_expenses) }}</p>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase text-slate-400 font-bold block">Net Cash Flow</span>
+        <p class="text-lg font-bold {% if snapshot.net_cash_flow >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+          {{ '+' if snapshot.net_cash_flow >= 0 else '' }}{{ snapshot.currency }}{{ "%.2f"|format(snapshot.net_cash_flow) }}
+        </p>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase text-slate-400 font-bold block">Savings Rate</span>
+        <p class="text-lg font-bold text-slate-800">{{ "%.1f"|format(snapshot.savings_rate) }}%</p>
+      </div>
+    </div>
+
+    <!-- AI Diagnostic Summary -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">AI Advisor Diagnostic Evaluation</h3>
+      <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+        {{ analysis.summary }}
+      </p>
+    </div>
+
+    <!-- Category Breakdown Table -->
+    <div class="space-y-3">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Category Spending & Envelope Variance</h3>
+      <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase">
+          <tr>
+            <th class="p-3">Category</th>
+            <th class="p-3">Type</th>
+            <th class="p-3 text-right">Limit</th>
+            <th class="p-3 text-right">Actual Spent</th>
+            <th class="p-3 text-right">Variance</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700">
+          {% for cat in snapshot.categories %}
+            {% set spent = snapshot.category_totals.get(cat.name, 0.0) %}
+            {% set variance = cat.budget_limit - spent %}
+            <tr>
+              <td class="p-3 font-medium">{{ cat.name }}</td>
+              <td class="p-3 text-slate-500">{{ cat.envelope_type }}</td>
+              <td class="p-3 text-right">{{ snapshot.currency }}{{ "%.2f"|format(cat.budget_limit) }}</td>
+              <td class="p-3 text-right font-bold">{{ snapshot.currency }}{{ "%.2f"|format(spent) }}</td>
+              <td class="p-3 text-right font-semibold {% if variance < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                {% if variance < 0 %}+{{ snapshot.currency }}{{ "%.2f"|format(variance|abs) }} Over{% else %}{{ snapshot.currency }}{{ "%.2f"|format(variance) }} Left{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Actionable Recommendations -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Actionable Priorities for Next Cycle</h3>
+      <ul class="list-disc pl-5 space-y-1 text-xs text-slate-700">
+        {% for tip in analysis.actionable_tips %}
+          <li>{{ tip }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Sign-off -->
+    <div class="pt-6 border-t border-slate-200 text-center text-[10px] text-slate-400">
+      Generated automatically by Personal Finance Advisor Bot • Grounded with Gemini AI Analysis
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
